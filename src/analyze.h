@@ -5,8 +5,11 @@
 
 typedef struct {
     BfAst *ast;
+    char  *file;
+    int    current;
 } BfAnalyzer;
 
-void analyze(BfParser *parser);
+BfAnalyzer *init_analyzer(BfAst *ast, char *file);
+void analyze(BfAnalyzer *parser);
 
 #endif

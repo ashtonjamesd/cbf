@@ -5,6 +5,7 @@
 #include "parse.h"
 #include "analyze.h"
 #include "utils.h"
+#include "runtime.h"
 
 void print_ast_node(BfAstNode node, int indent) {
     for (int i = 0; i < indent; i++) {
@@ -54,7 +55,11 @@ int main(int argc, char *argv[]) {
 
     print_ast(parser->ast);
 
-    analyze(parser);
+    BfAnalyzer * analyzer= init_analyzer(parser->ast, parser->file);
+    analyze(analyzer);
+
+    BfRuntime *runtime = init_runtime(parser->ast, parser->ast->count);
+    execute(runtime);
 
     free_lexer(lexer);
 

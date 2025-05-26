@@ -22,16 +22,16 @@ void free_lexer(BfLexer *lexer) {
     free(lexer);
 }
 
-static int is_valid_token(char c) {
-    return c == '+'
-        || c == '-'
-        || c == '<'
-        || c == '>'
-        || c == '.'
-        || c == ','
-        || c == '['
-        || c == ']';
-}
+// static int is_valid_token(char c) {
+//     return c == '+'
+//         || c == '-'
+//         || c == '<'
+//         || c == '>'
+//         || c == '.'
+//         || c == ','
+//         || c == '['
+//         || c == ']';
+// }
 
 static inline char current(BfLexer *lexer) {
     return lexer->buff[lexer->current];

@@ -1,7 +1,17 @@
 #include <stdio.h>
 #include <stdarg.h>
+#include <stdlib.h>
 
 #include "analyze.h"
+
+BfAnalyzer *init_analyzer(BfAst *ast, char *file) {
+    BfAnalyzer *analyzer = malloc(sizeof(BfAnalyzer));
+    analyzer->ast = ast;
+    analyzer->file = file;
+    analyzer->current = 0;
+
+    return analyzer;
+}
 
 BfOpType opposite_instr(BfAstNode node) {
     switch (node.type) {
@@ -13,11 +23,11 @@ BfOpType opposite_instr(BfAstNode node) {
     }
 }
 
-static void bf_warning(BfParser *parser, BfAstNode node, char *fmt, ...) {
+static void warn(BfAnalyzer *analyzer, BfAstNode node, char *fmt, ...) {
     if (node.start_line != node.end_line) {
-        printf("\n%s: expression from line %d to %d", parser->file, node.start_line, node.end_line);
+        printf("\n%s: expression from line %d to %d", analyzer->file, node.start_line, node.end_line);
     } else {
-        printf("\n%s: expression on line %d", parser->file, node.start_line);
+        printf("\n%s: expression on line %d", analyzer->file, node.start_line);
     }
 
     printf("\nwarning: ");
@@ -30,30 +40,31 @@ static void bf_warning(BfParser *parser, BfAstNode node, char *fmt, ...) {
     printf("\n");
 }
 
-void analyze_node(BfParser *parser, BfAstNode node, int *i) {
-    if (node.type == BF_INC_DATA || node.type == BF_DEC_DATA ||
-        node.type == BF_INC_PTR  || node.type == BF_DEC_PTR) {
-        BfAstNode next = parser->ast->nodes[*i + 1];
+void analyze_node(BfAnalyzer *analyzer, BfAstNode *nodes, int count) {
+    for (int i = 0; i < count; i++) {
+        BfAstNode node = nodes[i];
 
-        if (next.type == opposite_instr(node)) {
-            *i += 1;
-            bf_warning(parser, node, "redundant instructions '%s' and '%s' cancel each other out", node.c, next.c);
+        if (node.type == BF_INC_DATA || node.type == BF_DEC_DATA || node.type == BF_INC_PTR  || node.type == BF_DEC_PTR) {
+            if (i + 1 < count) {
+                BfAstNode next = nodes[i + 1];
+
+                if (next.type == opposite_instr(node)) {
+                    analyzer->current++;
+                    warn(analyzer, node, "redundant instructions '%s' and '%s' cancel each other out", node.c, next.c);
+                }
+            }
         }
-    }
 
-    if (node.type == BF_LOOP && node.loop.count == 0) {
-        bf_warning(parser, node, "empty loop");
-    } else {
-        for (int j = 0; j < node.loop.count; j++) {
-            printf("yep");
-            analyze_node(parser, node.loop.body[j], i);
+        if (node.type == BF_LOOP) {
+            if (node.loop.count == 0) {
+                warn(analyzer, node, "empty loop");
+            } else {
+                analyze_node(analyzer, node.loop.body, node.loop.count);
+            }
         }
     }
 }
 
-void analyze(BfParser *parser) {
-    for (int i = 0; i < parser->ast->count; i++) {
-        BfAstNode node = parser->ast->nodes[i];
-        analyze_node(parser, node, &i);
-    }
+void analyze(BfAnalyzer *analyzer) {
+    analyze_node(analyzer, analyzer->ast->nodes, analyzer->ast->count);
 }
