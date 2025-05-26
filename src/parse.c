@@ -6,6 +6,27 @@
 
 static BfAstNode parse_node(BfParser *parser);
 
+void print_ast_node(BfAstNode node, int indent) {
+    for (int i = 0; i < indent; i++) {
+        printf("  ");
+    }
+
+    if (node.type != BF_LOOP) {
+        printf("(%d) %s\n", node.count, bf_op_type_to_str(node.type));
+    } else {
+        printf("Loop (count %d):\n", node.loop.count);
+        for (int i = 0; i < node.loop.count; i++) {
+            print_ast_node(node.loop.body[i], indent + 1);
+        }
+    }
+}
+
+void print_ast(BfAst *ast) {
+    for (int i = 0; i < ast->count; i++) {
+        print_ast_node(ast->nodes[i], 0);
+    }
+}
+
 BfParser *init_parser(BfToken *tokens, int token_count, char *file) {
     BfParser *parser = malloc(sizeof(BfParser));
     parser->current = 0;
@@ -20,6 +41,25 @@ BfParser *init_parser(BfToken *tokens, int token_count, char *file) {
 
     return parser;
 }
+
+static void free_ast_node(BfAstNode *node) {
+    if (node->type == BF_LOOP) {
+        for (int i = 0; i < node->loop.count; i++) {
+            free_ast_node(&node->loop.body[i]);
+        }
+        free(node->loop.body);
+    }
+}
+
+void free_parser(BfParser *parser) {
+    for (int i = 0; i < parser->ast->count; i++) {
+        free_ast_node(&parser->ast->nodes[i]);
+    }
+    free(parser->ast->nodes);
+    free(parser->ast);
+    free(parser);
+}
+
 
 static BfOpType map_type(BfToken c) {
     switch (c.value) {

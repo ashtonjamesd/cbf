@@ -1,5 +1,6 @@
 #include <stdlib.h>
 #include <stdio.h>
+#include <string.h>
 
 #include "runtime.h"
 
@@ -14,8 +15,12 @@ BfRuntime *init_runtime(BfAst *ast, int count) {
     return runtime;
 }
 
+void free_runtime(BfRuntime *runtime) {
+    free(runtime->tape);
+    free(runtime);
+}
 
-void execute_instr(BfAstNode node, BfRuntime *runtime) {
+int execute_instr(BfAstNode node, BfRuntime *runtime) {
     switch (node.type) {
         case BF_INC_DATA:
             runtime->tape[runtime->ptr] += node.count;
@@ -25,6 +30,12 @@ void execute_instr(BfAstNode node, BfRuntime *runtime) {
             break;
         case BF_INC_PTR:
             runtime->ptr += node.count;
+            if (runtime->ptr >= runtime->tape_size) {
+                size_t new_size = runtime->ptr + 1;
+                runtime->tape = realloc(runtime->tape, new_size * sizeof(uint8_t));
+                memset(runtime->tape + runtime->tape_size, 0, (new_size - runtime->tape_size));
+                runtime->tape_size = new_size;
+            }
             break;
         case BF_DEC_PTR:
             runtime->ptr -= node.count;
@@ -46,11 +57,17 @@ void execute_instr(BfAstNode node, BfRuntime *runtime) {
                 }
             }
             break;
+        default:
+            printf("runtime error: unknown instruction");
+            return 1;
     }
+
+    return 0;
 }
 
 void execute(BfRuntime *runtime) {
     for (int i = 0; i < runtime->count; i++) {
-        execute_instr(runtime->ast->nodes[i], runtime);
+        int err = execute_instr(runtime->ast->nodes[i], runtime);
+        if (err) break;
     }
 }

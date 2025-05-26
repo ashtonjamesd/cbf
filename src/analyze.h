@@ -10,6 +10,8 @@ typedef struct {
 } BfAnalyzer;
 
 BfAnalyzer *init_analyzer(BfAst *ast, char *file);
+void free_analyzer(BfAnalyzer *analyzer);
+
 void analyze(BfAnalyzer *parser);
 
 #endif

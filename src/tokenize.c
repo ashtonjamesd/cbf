@@ -3,6 +3,12 @@
 
 #include "tokenize.h"
 
+void print_lexer(BfLexer *lexer) {
+    for (int i = 0; i < lexer->token_count; i++) {
+        printf("Token: %c\n", lexer->tokens[i].value);
+    }
+}
+
 BfLexer *init_lexer(char *buff, char* file) {
     BfLexer *lexer = malloc(sizeof(BfLexer));
     lexer->current = 0;
@@ -22,22 +28,14 @@ void free_lexer(BfLexer *lexer) {
     free(lexer);
 }
 
-// static int is_valid_token(char c) {
-//     return c == '+'
-//         || c == '-'
-//         || c == '<'
-//         || c == '>'
-//         || c == '.'
-//         || c == ','
-//         || c == '['
-//         || c == ']';
-// }
-
 static inline char current(BfLexer *lexer) {
     return lexer->buff[lexer->current];
 }
 
 void tokenize(BfLexer *lexer) {
+    int loop_start = 0;
+    int loop_end = 0;
+
     while (current(lexer)) {
         while (current(lexer) == ' ' || current(lexer) == '\r' || current(lexer) == '\n') {
             if (current(lexer) == '\n') {
@@ -49,12 +47,6 @@ void tokenize(BfLexer *lexer) {
 
             lexer->current++;
         }
-
-        // if (!is_valid_token(current(lexer))) {
-        //     printf("\n%s:%d:%d: warning: ignoring unknown character '%c'\n", lexer->file, lexer->line, lexer->column, current(lexer));
-        //     lexer->current++;
-        //     continue;
-        // }
 
         BfToken token;
         token.value = current(lexer);
@@ -69,5 +61,9 @@ void tokenize(BfLexer *lexer) {
         lexer->tokens[lexer->token_count++] = token;
         lexer->current++;
         lexer->column++;
+    }
+
+    if (loop_start != loop_end) {
+        printf("\n%s:%d:%d: error: unterminated loops '%c'\n", lexer->file, lexer->line, lexer->column, current(lexer));
     }
 }

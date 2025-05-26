@@ -40,6 +40,10 @@ typedef struct {
 } BfParser;
 
 BfParser *init_parser(BfToken *tokens, int count, char *file);
+void free_parser(BfParser *parser);
+
 void parse(BfParser *parser);
+
+void print_ast(BfAst *ast);
 
 #endif

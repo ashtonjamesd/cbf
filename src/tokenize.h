@@ -24,4 +24,6 @@ void free_lexer(BfLexer *lexer);
 
 void tokenize(BfLexer *lexer);
 
+void print_lexer(BfLexer *lexer);
+
 #endif

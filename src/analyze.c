@@ -13,6 +13,10 @@ BfAnalyzer *init_analyzer(BfAst *ast, char *file) {
     return analyzer;
 }
 
+void free_analyzer(BfAnalyzer *analyzer) {
+    free(analyzer);
+}
+
 BfOpType opposite_instr(BfAstNode node) {
     switch (node.type) {
         case BF_INC_DATA: return BF_DEC_DATA;

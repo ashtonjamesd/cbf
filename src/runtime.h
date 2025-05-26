@@ -14,6 +14,8 @@ typedef struct {
 } BfRuntime;
 
 BfRuntime *init_runtime(BfAst *ast, int count);
+void free_runtime(BfRuntime *runtime);
+
 void execute(BfRuntime *runtime);
 
 #endif
