@@ -1,6 +1,7 @@
 CC = gcc
 EXEC = build/cbf
-OBJS = src/main.c src/tokenize.c
+SRCS    = $(wildcard src/*.c)
+CFLAGS = -Wextra -Wall
 
 all:
-	$(CC) $(OBJS) -o $(EXEC)
+	$(CC) $(CFLAGS) $(SRCS) -o $(EXEC)
