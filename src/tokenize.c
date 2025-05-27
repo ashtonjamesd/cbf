@@ -53,6 +53,12 @@ void tokenize(BfLexer *lexer) {
         token.line = lexer->line;
         token.column = lexer->column;
 
+        if (token.value == '[') {
+            loop_start++;
+        } else if (token.value == ']') {
+            loop_end++;
+        }
+
         if (lexer->token_count >= lexer->token_capacity) {
             lexer->token_capacity *= 2;
             lexer->tokens = realloc(lexer->tokens, sizeof(BfToken) * lexer->token_capacity);
@@ -64,6 +70,6 @@ void tokenize(BfLexer *lexer) {
     }
 
     if (loop_start != loop_end) {
-        printf("\n%s:%d:%d: error: unterminated loops '%c'\n", lexer->file, lexer->line, lexer->column, current(lexer));
+        printf("\n%s:%d:%d: error: unterminated loops\n", lexer->file, lexer->line, lexer->column);
     }
 }
