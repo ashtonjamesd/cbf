@@ -7,29 +7,34 @@
 #include "analyze.h"
 #include "utils.h"
 #include "runtime.h"
+#include "x86.h"
 
-#define IS_RUNTIME(x) strcmp(argv[i], x) == 0
+#define match(x) strcmp(argv[i], x) == 0
 
 int main(int argc, char *argv[]) {
     if (argc < 2) {
-        perror("Usage: cbf *.bf");
+        printf("\nUsage: cbf *.bf\n");
         return 1;
     }
 
     char *runtime = "-interpret";
     int debug = 0;
-    for (int i = 1; i < argc; i++) {
-        if (IS_RUNTIME("-x86") || IS_RUNTIME("-interpret")) {
+    for (int i = 2; i < argc; i++) {
+        if (match("-x86") || match("-interpret")) {
             runtime = argv[i];
         }
-        else if (strcmp("-d", argv[i])) {
+        else if (match("-d")) {
             debug = 1;
+        }
+        else {
+            printf("\nunknown flag '%s'\n", argv[i]);
+            return 1;
         }
     }
 
     FILE *fptr = fopen(argv[1], "r");
     if (!fptr) {
-        perror("Error opening file");
+        perror("Error opening file\n");
         return 1;
     }
 
@@ -39,7 +44,7 @@ int main(int argc, char *argv[]) {
 
     char *buff = malloc(sz + 1);
     if (!buff) {
-        perror("Error allocating for source file");
+        perror("Error allocating for source file\n");
         fclose(fptr);
         return 1;
     }
@@ -66,6 +71,9 @@ int main(int argc, char *argv[]) {
         BfRuntime *runtime = init_runtime(parser->ast, parser->ast->count);
         execute(runtime);
         free_runtime(runtime);
+    }
+    else if (strcmp(runtime, "-x86") == 0) {
+        generate_x86(parser->ast);
     }
     else {
         printf("runtime '%s' not supported\n", runtime);
